@@ -19,31 +19,34 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
         private const val TAG = "AirHockeyRenderer"
         private const val BYTES_PER_FLOAT = 4
         private const val POSITION_COMPONENT_COUNT = 2
+        private const val COLOR_COMPONENT_COUNT = 3
+        private const val STRIDE =
+            (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT
         private const val A_POSITION = "a_Position"
-        private const val U_COLOR = "u_Color"
+        private const val A_COLOR = "a_Color"
 
         val tableVerticesWithTriangles = floatArrayOf(
             // Triangle 1
-            +0.0f, +0.0f,
-            -0.5f, -0.5f,
-            +0.5f, -0.5f,
-            +0.5f, +0.5f,
-            -0.5f, +0.5f,
-            -0.5f, -0.5f,
+            +0.0f, +0.0f, 1.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
+            +0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
+            +0.5f, +0.5f, 0.7f, 0.7f, 0.7f,
+            -0.5f, +0.5f, 0.7f, 0.7f, 0.7f,
+            -0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
 
             // Line 1
-            -0.5f, 0f,
-            0.5f, 0f,
+            -0.5f, 0f, 1.0f, 0.0f, 0.0f,
+            +0.5f, 0f, 1.0f, 0.0f, 0.0f,
 
             // Mallets
-            0.0f, -0.4f,
-            0.0f, 0.4f,
+            0.0f, -0.4f, 0.0f, 0.0f, 1.0f,
+            0.0f, +0.4f, 1.0f, 0.0f, 0.0f,
         )
     }
 
     private var program: Int = 0
     private var aPositionLocation = 0
-    private var uColorLocation = 0
+    private var aColorLocation = 0
 
     private val vertexData: FloatBuffer =
         ByteBuffer.allocateDirect(tableVerticesWithTriangles.size * BYTES_PER_FLOAT)
@@ -68,7 +71,7 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
 
         glUseProgram(program)
         aPositionLocation = glGetAttribLocation(program, A_POSITION)
-        uColorLocation = glGetUniformLocation(program, U_COLOR)
+        aColorLocation = glGetAttribLocation(program, A_COLOR)
 
 
         vertexData.position(0)
@@ -77,10 +80,21 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
             POSITION_COMPONENT_COUNT,
             GL_FLOAT,
             false,
-            0,
+            STRIDE,
             vertexData
         )
         glEnableVertexAttribArray(aPositionLocation)
+
+        vertexData.position(POSITION_COMPONENT_COUNT)
+        glVertexAttribPointer(
+            aColorLocation,
+            COLOR_COMPONENT_COUNT,
+            GL_FLOAT,
+            false,
+            STRIDE,
+            vertexData
+        )
+        glEnableVertexAttribArray(aColorLocation)
     }
 
     override fun onSurfaceChanged(p0: GL10?, width: Int, height: Int) {
@@ -93,16 +107,9 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
     override fun onDrawFrame(p0: GL10?) {
         glClear(GL_COLOR_BUFFER_BIT)
 
-        glUniform4f(uColorLocation, 1f, 1f, 1f, 1f)
         glDrawArrays(GL_TRIANGLE_FAN, 0, 6)
-
-        glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
         glDrawArrays(GL_LINES, 6, 2)
-
-        glUniform4f(uColorLocation, 0f, 0f, 1f, 1f)
         glDrawArrays(GL_POINTS, 8, 1)
-
-        glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
         glDrawArrays(GL_POINTS, 9, 1)
     }
 
