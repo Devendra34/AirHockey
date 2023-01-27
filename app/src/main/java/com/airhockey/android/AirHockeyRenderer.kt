@@ -3,9 +3,10 @@ package com.airhockey.android
 import android.content.Context
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView.Renderer
-import android.opengl.Matrix.orthoM
+import android.opengl.Matrix.*
 import android.util.Log
 import com.airhockey.android.util.LoggerConfig
+import com.airhockey.android.util.MatrixHelper
 import com.airhockey.android.util.ShaderHelper
 import com.airhockey.android.util.TextResourceReader
 import java.nio.ByteBuffer
@@ -13,8 +14,6 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import kotlin.math.max
-import kotlin.math.min
 
 class AirHockeyRenderer(private val context: Context) : Renderer {
 
@@ -32,11 +31,11 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
         val tableVerticesWithTriangles = floatArrayOf(
             // Triangle 1
             +0.0f, +0.0f, 1.0f, 1.0f, 1.0f,
-            -0.5f, -0.8f, 0.0f, 0.0f, 0.7f,
-            +0.5f, -0.8f, 0.0f, 0.0f, 0.7f,
-            +0.5f, +0.8f, 0.0f, 0.0f, 0.7f,
-            -0.5f, +0.8f, 0.0f, 0.0f, 0.7f,
-            -0.5f, -0.8f, 0.0f, 0.0f, 0.7f,
+            -0.5f, -0.8f, 0.7f, 0.7f, 0.7f,
+            +0.5f, -0.8f, 0.7f, 0.7f, 0.7f,
+            +0.5f, +0.8f, 0.7f, 0.7f, 0.7f,
+            -0.5f, +0.8f, 0.7f, 0.7f, 0.7f,
+            -0.5f, -0.8f, 0.7f, 0.7f, 0.7f,
 
             // Line 1
             -0.5f, 0f, 1.0f, 0.0f, 0.0f,
@@ -49,6 +48,7 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
     }
 
     private val projectionMatrix = FloatArray(16)
+    private val modelMatrix = FloatArray(16)
 
     private var program: Int = 0
     private var aPositionLocation = 0
@@ -64,7 +64,7 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
 
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+        glClearColor(0.3f, 0.2f, 0.8f, 0.0f)
         val vertexShaderSource =
             TextResourceReader.readTextFileFromResource(context, R.raw.simple_vertex_shader)
         val fragmentShaderSource =
@@ -111,15 +111,15 @@ class AirHockeyRenderer(private val context: Context) : Renderer {
         }
         glViewport(0, 0, width, height)
 
-        val aspectRatio = max(width, height).toFloat() / min(width, height).toFloat()
-        if (width > height) {
-            // Landscape
-            orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f)
-        } else {
-            // Portrait
-            orthoM(projectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f)
-        }
-        glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0)
+        val aspectRatio = width / height.toFloat()
+        setIdentityM(modelMatrix, 0)
+        translateM(modelMatrix, 0, 0f, 0f, -2f)
+        rotateM(modelMatrix, 0, -60f, 1f, 0f, 0f)
+        MatrixHelper.perspectiveM(projectionMatrix, 45f, aspectRatio, 1f, 10f)
+
+        val mvpMatrix = FloatArray(16)
+        multiplyMM(mvpMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
+        glUniformMatrix4fv(uMatrixLocation, 1, false, mvpMatrix, 0)
     }
 
     override fun onDrawFrame(p0: GL10?) {
