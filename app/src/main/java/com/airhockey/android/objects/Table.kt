@@ -6,7 +6,7 @@ import com.airhockey.android.Constants.BYTES_PER_FLOAT
 import com.airhockey.android.data.VertexArray
 import com.airhockey.android.programs.TextureShaderProgram
 
-class Table {
+class Table : DrawObject<TextureShaderProgram> {
 
     companion object {
         private const val POSITION_COMPONENT_COUNT = 2
@@ -27,11 +27,11 @@ class Table {
 
     private val vertexArray = VertexArray(VERTEX_DATA)
 
-    fun bindData(textureShaderProgram: TextureShaderProgram) {
+    override fun bindData(shaderProgram: TextureShaderProgram) {
         // position
         vertexArray.setVertexAttribPointer(
             0,
-            textureShaderProgram.aPositionLocation,
+            shaderProgram.aPositionLocation,
             POSITION_COMPONENT_COUNT,
             STRIDE
         )
@@ -39,13 +39,13 @@ class Table {
         // texture coordinates
         vertexArray.setVertexAttribPointer(
             POSITION_COMPONENT_COUNT,
-            textureShaderProgram.aTextureCoordinatesLocation,
+            shaderProgram.aTextureCoordinatesLocation,
             TEXTURE_COORDINATES_COMPONENT_COUNT,
             STRIDE
         )
     }
 
-    fun draw() {
+    override fun draw() {
         glDrawArrays(GL_TRIANGLE_FAN, 0, 6)
     }
 }

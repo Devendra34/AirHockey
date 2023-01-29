@@ -17,15 +17,15 @@ open class ShaderProgram(
         protected val U_MATRIX = "u_Matrix"
 
         @JvmStatic
+        protected val U_COLOR = "u_Color"
+
+        @JvmStatic
         protected val U_TEXTURE_UNIT = "u_TextureUnit"
 
 
         // Attribute Constants
         @JvmStatic
         protected val A_POSITION = "a_Position"
-
-        @JvmStatic
-        protected val A_COLOR = "a_Color"
 
         @JvmStatic
         protected val A_TEXTURE_COORDINATES = "a_TextureCoordinates"
