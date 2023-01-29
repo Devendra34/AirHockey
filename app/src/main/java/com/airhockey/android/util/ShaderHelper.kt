@@ -7,15 +7,26 @@ object ShaderHelper {
 
     private const val TAG = "ShaderHelper"
 
-    fun compileVertexShader(shaderSource: String): Int {
+    fun buildProgram(vertexShaderSource: String, fragmentShaderSource: String) : Int {
+        val vertexShaderId = compileVertexShader(vertexShaderSource)
+        val fragmentShaderId = compileFragmentShader(fragmentShaderSource)
+
+        val program = linkProgram(vertexShaderId, fragmentShaderId)
+        if (LoggerConfig.ON) {
+            validateProgram(program)
+        }
+        return program
+    }
+
+    private fun compileVertexShader(shaderSource: String): Int {
         return compileShader(GL_VERTEX_SHADER, shaderSource)
     }
 
-    fun compileFragmentShader(shaderSource: String): Int {
+    private fun compileFragmentShader(shaderSource: String): Int {
         return compileShader(GL_FRAGMENT_SHADER, shaderSource)
     }
 
-    fun linkProgram(vertexShaderId: Int, fragmentShaderId: Int): Int {
+    private fun linkProgram(vertexShaderId: Int, fragmentShaderId: Int): Int {
         val programObjectId = glCreateProgram()
         if (programObjectId == 0) {
             if (LoggerConfig.ON) {
@@ -45,7 +56,7 @@ object ShaderHelper {
         return programObjectId
     }
 
-    fun validateProgram(programObjectId: Int): Boolean {
+    private fun validateProgram(programObjectId: Int): Boolean {
         glValidateProgram(programObjectId)
         val validationStatus = intArrayOf(0)
         glGetProgramiv(programObjectId, GL_VALIDATE_STATUS, validationStatus, 0)
